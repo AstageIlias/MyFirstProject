@@ -8,7 +8,7 @@ import java.util.Map;
 public class App {
 
     public static void main(String[] args) {
-        String connectionUrl = "jdbc:mysql://37.228.66.93/myfirstproject_db?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&user=Ilias&password=Joker123";
+        String connectionUrl = "";
         try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
             Map<String, String> SQLs = new HashMap<>();
             Map<String, String[][]> infos = new HashMap<>();
