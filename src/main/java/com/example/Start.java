@@ -100,8 +100,8 @@ public class Start {
             Resultat[] pers = new Resultat[subject_groups.length];
             for (int j = 0; j < subject_groups.length; j++) {
                 pers[j] = new Resultat(
-                        subject_groups[j].group_id,
                         subject_groups[j].subject_id,
+                        subject_groups[j].group_id,
                         subject_groups[j].all_count,
                         getTeacherid(subject_groups[j].subject_id)
                 );
@@ -229,7 +229,7 @@ public class Start {
                 }
             }
             if (bool){
-                arr.put(count, i);
+                arr.put(count, teachers[i].teacher_id);
                 count++;
             }
         }
