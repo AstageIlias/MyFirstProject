@@ -18,7 +18,7 @@ public class Start {
     private Subject_teachers[] subject_teachers;
 
     private String[] columns = {"Название предмета", "Название группы", "ФИО преп", "Часы"};
-    private String[] columnsTeacher = {"Название предмета", "Название группы", "Язык обучения", "Лекция", "Семинар", "Лаборатория"};
+    private String[] columnsTeacher = {"Название предмета", "Название группы", "Язык обучения", "Лекция", "Семинар", "Лаборатория", "Кол-во студентов"};
 
     private Random rand;
 
@@ -359,6 +359,7 @@ public class Start {
                     row.createCell(3).setCellValue(getSubjectLec(resultat[j].subject_id, resultat[j].group_id));
                     row.createCell(4).setCellValue(getSubjectSem(resultat[j].subject_id, resultat[j].group_id));
                     row.createCell(5).setCellValue(getSubjectLab(resultat[j].subject_id, resultat[j].group_id));
+                    row.createCell(6).setCellValue(getGroup_stud(resultat[j].group_id));
                 }
             }
             // Resize all columns to fit the content size
@@ -387,6 +388,14 @@ public class Start {
             }
         }
         return "";
+    }
+    public int getGroup_stud(int group_id){
+        for(int i = 0; i < groups.length; i++) {
+            if (groups[i].group_id == group_id){
+                return groups[i].students_count;
+            }
+        }
+        return 0;
     }
     public String getGroup_lang(int group_id){
         for(int i = 0; i < groups.length; i++) {
