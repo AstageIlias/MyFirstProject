@@ -18,6 +18,7 @@ public class Start {
     private Subject_teachers[] subject_teachers;
 
     private String[] columns = {"Название предмета", "Название группы", "ФИО преп", "Часы"};
+    private String[] columnsTeacher = {"Название предмета", "Название группы", "Язык обучения", "Лекция", "Семинар", "Лаборатория"};
 
     private Random rand;
 
@@ -30,7 +31,7 @@ public class Start {
         info = infos.get("group");
         Groups[] groups1 = new Groups[info.length];
         for (int i = 0; i < info.length; i++){
-            groups1[i] = new Groups(Integer.parseInt(info[i][0]), info[i][1], Integer.parseInt(info[i][2]));
+            groups1[i] = new Groups(Integer.parseInt(info[i][0]), info[i][1], Integer.parseInt(info[i][2]), Integer.parseInt(info[i][3]));
         }
         info = infos.get("subject");
         Subjects[] subjects1 = new Subjects[info.length];
@@ -153,6 +154,7 @@ public class Start {
                 }
                 System.out.println("persons = answer");
                 Excelwriter();
+                Excelwriter2();
                 System.out.println("finished");
                 System.exit(0);
                 break;
@@ -256,30 +258,7 @@ public class Start {
         result = personColors.clone();
         return result;
     }
-    public String getGroup_name(int group_id){
-        for(int i = 0; i < groups.length; i++) {
-            if (groups[i].group_id == group_id){
-                return groups[i].group_name;
-            }
-        }
-        return "";
-    }
-    public String getSubject_name(int subject_id){
-        for(int i = 0; i < subjects.length; i++) {
-            if (subjects[i].subject_id == subject_id){
-                return subjects[i].subject_name;
-            }
-        }
-        return "";
-    }
-    public String getTeacher_name(int teacher_id){
-        for(int i = 0; i < teachers.length; i++) {
-            if (teachers[i].teacher_id == teacher_id){
-                return teachers[i].teacher_name;
-            }
-        }
-        return "";
-    }
+
     public void Excelwriter(){
         // Create a Workbook
         Workbook workbook = new XSSFWorkbook();     // new HSSFWorkbook() for generating `.xls` file
@@ -329,7 +308,7 @@ public class Start {
         // Write the output to a file
         FileOutputStream fileOut = null;
         try {
-            fileOut = new FileOutputStream("poi-generated-file.xlsx");
+            fileOut = new FileOutputStream("Распределение.xlsx");
             workbook.write(fileOut);
             fileOut.close();
             workbook.close();
@@ -339,5 +318,126 @@ public class Start {
             e.printStackTrace();
         }
 
+    }
+    public void Excelwriter2(){
+        // Create a Workbook
+        Workbook workbook = new XSSFWorkbook();     // new HSSFWorkbook() for generating `.xls` file
+        /* CreationHelper helps us create instances for various things like DataFormat,
+           Hyperlink, RichTextString etc in a format (HSSF, XSSF) independent way */
+        CreationHelper createHelper = workbook.getCreationHelper();
+        // Create a Sheet
+        for (int i = 0; i < teachers.length; i++){
+            Sheet sheet = workbook.createSheet(teachers[i].teacher_name);
+            // Create a Font for styling header cells
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 14);
+            headerFont.setColor(IndexedColors.RED.getIndex());
+
+            // Create a CellStyle with the font
+            CellStyle headerCellStyle = workbook.createCellStyle();
+            headerCellStyle.setFont(headerFont);
+
+            // Create a Row
+            Row headerRow = sheet.createRow(0);
+
+            // Creating cells
+            for(int j = 0; j < columnsTeacher.length; j++) {
+                Cell cell = headerRow.createCell(j);
+                cell.setCellValue(columnsTeacher[j]);
+                cell.setCellStyle(headerCellStyle);
+            }
+
+            // Create Other rows and cells with employees data
+            int rowNum = 1;
+            for (int j = 0; j < resultat.length; j++) {
+                if (resultat[j].teacher_id == teachers[i].teacher_id) {
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(getSubject_name(resultat[j].subject_id));
+                    row.createCell(1).setCellValue(getGroup_name(resultat[j].group_id));
+                    row.createCell(2).setCellValue(getGroup_lang(resultat[j].group_id));
+                    row.createCell(3).setCellValue(getSubjectLec(resultat[j].subject_id, resultat[j].group_id));
+                    row.createCell(4).setCellValue(getSubjectSem(resultat[j].subject_id, resultat[j].group_id));
+                    row.createCell(5).setCellValue(getSubjectLab(resultat[j].subject_id, resultat[j].group_id));
+                }
+            }
+            // Resize all columns to fit the content size
+            for(int j = 0; j < columnsTeacher.length; j++) {
+                sheet.autoSizeColumn(i);
+            }
+        }
+
+        // Write the output to a file
+        FileOutputStream fileOut = null;
+        try {
+            fileOut = new FileOutputStream("По преподавателям.xlsx");
+            workbook.write(fileOut);
+            fileOut.close();
+            workbook.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public String getGroup_name(int group_id){
+        for(int i = 0; i < groups.length; i++) {
+            if (groups[i].group_id == group_id){
+                return groups[i].group_name;
+            }
+        }
+        return "";
+    }
+    public String getGroup_lang(int group_id){
+        for(int i = 0; i < groups.length; i++) {
+            if (groups[i].group_id == group_id){
+                if (groups[i].eng_group == 0){
+                    return "Русская/казахская";
+                } else {
+                    return "Английский";
+                }
+            }
+        }
+        return "";
+    }
+    public String getSubject_name(int subject_id){
+        for(int i = 0; i < subjects.length; i++) {
+            if (subjects[i].subject_id == subject_id){
+                return subjects[i].subject_name;
+            }
+        }
+        return "";
+    }
+    public int getSubjectLec(int subject_id, int group_id){
+        for(int i = 0; i < subject_groups.length; i++) {
+            if ((subject_groups[i].subject_id == subject_id) && (subject_groups[i].group_id == group_id)){
+                return subject_groups[i].lec_count;
+            }
+        }
+        return 0;
+    }
+    public int getSubjectLab(int subject_id, int group_id){
+        for(int i = 0; i < subject_groups.length; i++) {
+            if ((subject_groups[i].subject_id == subject_id) && (subject_groups[i].group_id == group_id)){
+                return subject_groups[i].lab_count;
+            }
+        }
+        return 0;
+    }
+    public int getSubjectSem(int subject_id, int group_id){
+        for(int i = 0; i < subject_groups.length; i++) {
+            if ((subject_groups[i].subject_id == subject_id) && (subject_groups[i].group_id == group_id)){
+                return subject_groups[i].sem_count;
+            }
+        }
+        return 0;
+    }
+    public String getTeacher_name(int teacher_id){
+        for(int i = 0; i < teachers.length; i++) {
+            if (teachers[i].teacher_id == teacher_id){
+                return teachers[i].teacher_name;
+            }
+        }
+        return "";
     }
 }
