@@ -3,10 +3,10 @@ package com.example;
 public class Resultat {
     public int teacher_id;
     public int group_id;
-    public int all_count;
+    public double all_count;
     public int subject_id;
 
-    public Resultat(int subject_id, int group_id, int all_count, int teacher_id) {
+    public Resultat(int subject_id, int group_id, double all_count, int teacher_id) {
         this.teacher_id = teacher_id;
         this.group_id = group_id;
         this.subject_id = subject_id;

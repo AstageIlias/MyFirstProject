@@ -17,8 +17,8 @@ public class Start {
     private Subject_groups[] subject_groups;
     private Subject_teachers[] subject_teachers;
 
-    private String[] columns = {"Название предмета", "Название группы", "ФИО преп", "Часы"};
-    private String[] columnsTeacher = {"Название предмета", "Название группы", "Язык обучения", "Лекция", "Семинар", "Лаборатория", "Кол-во студентов"};
+    private String[] columns = {"Название группы", "Название предмета", "Язык обучения", "Кол-во студентов", "Лек/Сем/Лаб", "СРСП", "Всего часов"};
+    private String[] columnsTeacher = {"Название группы", "Название предмета", "Язык обучения", "Кол-во студентов", "Лек/Сем/Лаб", "СРСП", "Всего часов"};
 
     private Random rand;
 
@@ -31,12 +31,12 @@ public class Start {
         info = infos.get("group");
         Groups[] groups1 = new Groups[info.length];
         for (int i = 0; i < info.length; i++){
-            groups1[i] = new Groups(Integer.parseInt(info[i][0]), info[i][1], Integer.parseInt(info[i][2]), Integer.parseInt(info[i][3]));
+            groups1[i] = new Groups(Integer.parseInt(info[i][0]), info[i][1], Integer.parseInt(info[i][2]));
         }
         info = infos.get("subject");
         Subjects[] subjects1 = new Subjects[info.length];
         for (int i = 0; i < info.length; i++){
-            subjects1[i] = new Subjects(Integer.parseInt(info[i][0]), info[i][1]);
+            subjects1[i] = new Subjects(Integer.parseInt(info[i][0]), info[i][1], Integer.parseInt(info[i][2]));
         }
         info = infos.get("subject_group");
         int rowcount = 0;
@@ -53,7 +53,7 @@ public class Start {
             String[] group_id = info[i][2].split(",");
             for (int s_id = 0; s_id < subject_id.length; s_id++){
                 for (int g_id = 0; g_id < group_id.length; g_id++){
-                    subject_groups1[rowcount] = new Subject_groups(Integer.parseInt(info[i][0]), Integer.parseInt(subject_id[s_id]), Integer.parseInt(group_id[g_id]), Integer.parseInt(info[i][3]), Integer.parseInt(info[i][4]), Integer.parseInt(info[i][5]));
+                    subject_groups1[rowcount] = new Subject_groups(Integer.parseInt(info[i][0]), Integer.parseInt(subject_id[s_id]), Integer.parseInt(group_id[g_id]), Integer.parseInt(info[i][3]), Integer.parseInt(info[i][4]), Integer.parseInt(info[i][5]),  Integer.parseInt(info[i][6]), Integer.parseInt(info[i][7]));
                     resultat1[rowcount] = new Resultat(subject_groups1[rowcount].subject_id, subject_groups1[rowcount].group_id, subject_groups1[rowcount].all_count, 0);
                     rowcount++;
                 }
@@ -92,7 +92,6 @@ public class Start {
         };
         myThread.run();
     }
-    //генетический алгоритм
     private void doColor() {
         Resultat[] answer = null; //ответ, готовое расписание
         final int PERSONS = 200; //количество особей
@@ -241,7 +240,7 @@ public class Start {
     private Resultat[] makeNewPop(Resultat[] personColors) {
         Resultat[] result;
         for (int i = 0; i < personColors.length - 1; i++) {
-            int count = personColors[i].all_count;
+            double count = personColors[i].all_count;
             for (int j = i + 1; j < personColors.length; j++) {
                 if (personColors[i].teacher_id == personColors[j].teacher_id) {
                     count += personColors[j].all_count;
@@ -260,52 +259,36 @@ public class Start {
     }
 
     public void Excelwriter(){
-        // Create a Workbook
-        Workbook workbook = new XSSFWorkbook();     // new HSSFWorkbook() for generating `.xls` file
-
-        /* CreationHelper helps us create instances for various things like DataFormat,
-           Hyperlink, RichTextString etc in a format (HSSF, XSSF) independent way */
+        Workbook workbook = new XSSFWorkbook();
         CreationHelper createHelper = workbook.getCreationHelper();
-
-        // Create a Sheet
-        Sheet sheet = workbook.createSheet("Schedule");
-
-        // Create a Font for styling header cells
+        Sheet sheet = workbook.createSheet("Общая информация");
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
-        headerFont.setFontHeightInPoints((short) 14);
-        headerFont.setColor(IndexedColors.RED.getIndex());
-
-        // Create a CellStyle with the font
+        headerFont.setFontHeightInPoints((short) 12);
+        headerFont.setColor(IndexedColors.BLACK.getIndex());
         CellStyle headerCellStyle = workbook.createCellStyle();
         headerCellStyle.setFont(headerFont);
-
-        // Create a Row
         Row headerRow = sheet.createRow(0);
-
-        // Creating cells
         for(int i = 0; i < columns.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(columns[i]);
             cell.setCellStyle(headerCellStyle);
         }
-
-        // Create Other rows and cells with employees data
         int rowNum = 1;
-
         for (int j = 0; j < resultat.length; j++) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(getSubject_name(resultat[j].subject_id));
-            row.createCell(1).setCellValue(getGroup_name(resultat[j].group_id));
-            row.createCell(2).setCellValue(getTeacher_name(resultat[j].teacher_id));
-            row.createCell(3).setCellValue(resultat[j].all_count);
+            row.createCell(0).setCellValue(getGroup_name(resultat[j].group_id));
+            row.createCell(1).setCellValue(getSubject_name(resultat[j].subject_id));
+            row.createCell(2).setCellValue(getSubject_lang(resultat[j].subject_id));
+            row.createCell(3).setCellValue(getGroup_stud(resultat[j].group_id));
+            row.createCell(4).setCellValue(getSubjectLec(resultat[j].subject_id, resultat[j].group_id));
+            row.createCell(5).setCellValue(getSRSP(j));
+            row.createCell(6).setCellValue(resultat[j].all_count);
 
         }
-        // Resize all columns to fit the content size
         for(int i = 0; i < columns.length; i++) {
             sheet.autoSizeColumn(i);
         }
-        // Write the output to a file
         FileOutputStream fileOut = null;
         try {
             fileOut = new FileOutputStream("Распределение.xlsx");
@@ -320,55 +303,46 @@ public class Start {
 
     }
     public void Excelwriter2(){
-        // Create a Workbook
-        Workbook workbook = new XSSFWorkbook();     // new HSSFWorkbook() for generating `.xls` file
-        /* CreationHelper helps us create instances for various things like DataFormat,
-           Hyperlink, RichTextString etc in a format (HSSF, XSSF) independent way */
+        Workbook workbook = new XSSFWorkbook();
         CreationHelper createHelper = workbook.getCreationHelper();
-        // Create a Sheet
         for (int i = 0; i < teachers.length; i++){
             Sheet sheet = workbook.createSheet(teachers[i].teacher_name);
-            // Create a Font for styling header cells
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
-            headerFont.setFontHeightInPoints((short) 14);
-            headerFont.setColor(IndexedColors.RED.getIndex());
-
-            // Create a CellStyle with the font
+            headerFont.setFontHeightInPoints((short) 12);
+            headerFont.setColor(IndexedColors.BLACK.getIndex());
             CellStyle headerCellStyle = workbook.createCellStyle();
             headerCellStyle.setFont(headerFont);
-
-            // Create a Row
             Row headerRow = sheet.createRow(0);
-
-            // Creating cells
             for(int j = 0; j < columnsTeacher.length; j++) {
                 Cell cell = headerRow.createCell(j);
                 cell.setCellValue(columnsTeacher[j]);
                 cell.setCellStyle(headerCellStyle);
             }
-
-            // Create Other rows and cells with employees data
             int rowNum = 1;
+            double itogo = 0;
             for (int j = 0; j < resultat.length; j++) {
                 if (resultat[j].teacher_id == teachers[i].teacher_id) {
                     Row row = sheet.createRow(rowNum++);
-                    row.createCell(0).setCellValue(getSubject_name(resultat[j].subject_id));
-                    row.createCell(1).setCellValue(getGroup_name(resultat[j].group_id));
-                    row.createCell(2).setCellValue(getGroup_lang(resultat[j].group_id));
-                    row.createCell(3).setCellValue(getSubjectLec(resultat[j].subject_id, resultat[j].group_id));
-                    row.createCell(4).setCellValue(getSubjectSem(resultat[j].subject_id, resultat[j].group_id));
-                    row.createCell(5).setCellValue(getSubjectLab(resultat[j].subject_id, resultat[j].group_id));
-                    row.createCell(6).setCellValue(getGroup_stud(resultat[j].group_id));
+                    row.createCell(0).setCellValue(getGroup_name(resultat[j].group_id));
+                    row.createCell(1).setCellValue(getSubject_name(resultat[j].subject_id));
+                    row.createCell(2).setCellValue(getSubject_lang(resultat[j].subject_id));
+                    row.createCell(3).setCellValue(getGroup_stud(resultat[j].group_id));
+                    row.createCell(4).setCellValue(getSubjectLec(resultat[j].subject_id, resultat[j].group_id));
+                    row.createCell(5).setCellValue(getSRSP(j));
+                    row.createCell(6).setCellValue(resultat[j].all_count);
+                    itogo += resultat[j].all_count;
                 }
             }
-            // Resize all columns to fit the content size
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("ИТОГО:");
+            row.createCell(6).setCellValue(itogo);
+            row.getCell(0).setCellStyle(headerCellStyle);
+            row.getCell(6).setCellStyle(headerCellStyle);
             for(int j = 0; j < columnsTeacher.length; j++) {
                 sheet.autoSizeColumn(i);
             }
         }
-
-        // Write the output to a file
         FileOutputStream fileOut = null;
         try {
             fileOut = new FileOutputStream("По преподавателям.xlsx");
@@ -397,11 +371,11 @@ public class Start {
         }
         return 0;
     }
-    public String getGroup_lang(int group_id){
-        for(int i = 0; i < groups.length; i++) {
-            if (groups[i].group_id == group_id){
-                if (groups[i].eng_group == 0){
-                    return "Русская/казахская";
+    public String getSubject_lang(int subject_id){
+        for(int i = 0; i < subjects.length; i++) {
+            if (subjects[i].subject_id == subject_id){
+                if (subjects[i].eng_group == 0){
+                    return "Русский/казахский";
                 } else {
                     return "Английский";
                 }
@@ -417,29 +391,13 @@ public class Start {
         }
         return "";
     }
-    public int getSubjectLec(int subject_id, int group_id){
+    public String getSubjectLec(int subject_id, int group_id){
         for(int i = 0; i < subject_groups.length; i++) {
             if ((subject_groups[i].subject_id == subject_id) && (subject_groups[i].group_id == group_id)){
-                return subject_groups[i].lec_count;
+                return subject_groups[i].lec_count + "/" + subject_groups[i].sem_count + "/" + subject_groups[i].lab_count;
             }
         }
-        return 0;
-    }
-    public int getSubjectLab(int subject_id, int group_id){
-        for(int i = 0; i < subject_groups.length; i++) {
-            if ((subject_groups[i].subject_id == subject_id) && (subject_groups[i].group_id == group_id)){
-                return subject_groups[i].lab_count;
-            }
-        }
-        return 0;
-    }
-    public int getSubjectSem(int subject_id, int group_id){
-        for(int i = 0; i < subject_groups.length; i++) {
-            if ((subject_groups[i].subject_id == subject_id) && (subject_groups[i].group_id == group_id)){
-                return subject_groups[i].sem_count;
-            }
-        }
-        return 0;
+        return "";
     }
     public String getTeacher_name(int teacher_id){
         for(int i = 0; i < teachers.length; i++) {
@@ -448,5 +406,8 @@ public class Start {
             }
         }
         return "";
+    }
+    public double getSRSP(int j){
+        return (getSubject_lang(resultat[j].subject_id).length() > 11) ? (getGroup_stud(resultat[j].group_id) * 0.4) : (getGroup_stud(resultat[j].group_id) * 0.6);
     }
 }
